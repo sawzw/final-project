@@ -1,0 +1,727 @@
+# StudyStreak MY Project Proposal
+
+## 1. Project Title
+
+**StudyStreak MY: A Gamified Sejarah Learning Application for Malaysian Secondary-School Students**
+
+## 2. Project Overview
+
+StudyStreak MY is a mobile learning application designed to help Malaysian secondary-school students study Sejarah more consistently and effectively.
+
+
+The application will provide Sejarah learning content for students from **Form 1 to Form 5**. Students will be able to access simplified notes, complete practice quizzes, manage their Sejarah homework, maintain a daily study streak and monitor their learning progress.
+
+To support students from different language backgrounds, the notes will be available in:
+
+* English
+* Bahasa Melayu
+* Chinese
+
+The application will be developed using **React Native**, allowing it to run on both Android and iOS devices.
+
+## 3. Problem Statement
+
+Many Malaysian secondary-school students find Sejarah difficult because the subject contains many facts, names, dates, events and explanations that must be understood and remembered.
+
+Some common problems faced by students include:
+
+* Difficulty understanding long textbook explanations
+* Difficulty identifying important facts
+* Forgetting historical dates, events and individuals
+* Lack of suitable practice questions
+* Difficulty studying consistently
+* Forgetting homework and revision tasks
+* Difficulty understanding Sejarah in only one language
+* Studying only when an examination is approaching
+
+Although textbooks and revision books are available, students may still find the content complicated or difficult to organise.
+
+Students therefore need a simple mobile application that helps them study Sejarah regularly, understand important topics and test their knowledge.
+
+## 4. Proposed Solution
+
+StudyStreak MY will combine Sejarah learning materials, homework management, quizzes and gamification in one application.
+
+Students will be able to:
+
+1. Select their school Form.
+2. Select a Sejarah chapter.
+3. Choose their preferred notes language.
+4. Read simplified chapter notes.
+5. View important points and summaries.
+6. Complete chapter-based quizzes.
+7. Review correct and incorrect answers.
+8. Add and manage Sejarah homework.
+9. Build a daily study streak.
+10. Monitor their chapter and quiz progress.
+
+The application will encourage students to complete at least one learning activity every day.
+
+## 5. Target Users
+
+The main users are Malaysian secondary-school students aged approximately 13 to 17.
+
+The application will support:
+
+* Form 1 students
+* Form 2 students
+* Form 3 students
+* Form 4 students
+* Form 5 students
+
+The initial users may come from:
+
+* Government secondary schools
+* Private schools
+* Tuition centres
+* Homeschooling programmes
+* Online learning programmes
+
+The first testing group may consist of classmates, schoolmates, friends and students from tuition centres.
+
+## 6. Estimated Number of Users
+
+During the first testing stage, the application will be tested by approximately:
+
+**10 to 30 students**
+
+After the application is launched, the first target is:
+
+**100 registered users**
+
+If the application receives positive feedback and more content is added, the long-term target may increase to:
+
+**500 to 1,000 Malaysian secondary-school students**
+
+These figures are project targets and are not guaranteed user numbers.
+
+## 7. Main Features
+
+### 7.1 User Registration and Login
+
+Students can create an account using their email and password.
+
+The application will save:
+
+* Student name
+* Email
+* Selected Form
+* Current study streak
+* Best study streak
+* Quiz results
+* Chapter progress
+* Homework tasks
+
+Students will remain logged in until they choose to log out.
+
+### 7.2 Form Selection
+
+Students can select their school level before accessing the learning content.
+
+The available levels are:
+
+* Form 1
+* Form 2
+* Form 3
+* Form 4
+* Form 5
+
+After selecting a Form, the application will display the relevant Sejarah chapters.
+
+Students may change their selected Form through the profile page.
+
+### 7.3 Sejarah Chapter Library
+
+Each Form will contain a list of Sejarah chapters based on the Malaysian secondary-school syllabus.
+
+The chapter page will include:
+
+* Chapter title
+* Learning progress
+* Simplified notes
+* Important points
+* Practice quiz
+* Quick test
+* Quiz history
+
+For the first development version, only selected chapters may be fully completed. More chapters can be added gradually after the application structure is working correctly.
+
+### 7.4 Multilingual Notes
+
+Students can choose the language they prefer before opening a chapter’s notes.
+
+The available languages are:
+
+* English
+* Bahasa Melayu
+* Chinese
+
+The student can select a language from the language-selection page.
+
+The notes will include:
+
+* Topic introduction
+* Important historical events
+* Important individuals
+* Important dates
+* Keywords
+* Main facts
+* Short explanations
+* Chapter summary
+
+Students may also switch between languages while reading the notes.
+
+The translations should explain the same historical content clearly without changing the meaning of the original topic.
+
+### 7.5 Important Points
+
+Each chapter will contain a separate important-points section.
+
+This section will show the most important information that students should understand or remember.
+
+For example:
+
+* Important rulers
+* Important historical events
+* Causes of an event
+* Effects of an event
+* Government systems
+* Economic activities
+* Social structures
+* Important agreements
+* Important dates
+
+This feature will help students revise a chapter quickly before a test or examination.
+
+### 7.6 Practice Quiz
+
+Students can complete quizzes after reading the notes.
+
+Version 1 will mainly use multiple-choice questions.
+
+Each question will contain:
+
+* One question
+* Four answer choices
+* One correct answer
+* A short explanation
+
+The quiz may contain five or ten questions.
+
+After completing the quiz, students will see:
+
+* Total score
+* Percentage
+* Correct answers
+* Incorrect answers
+* Answer explanations
+* Retry Quiz button
+* Return to Chapter button
+
+Completing a quiz will contribute to the student’s daily study streak.
+
+### 7.7 Review Answers
+
+Students can review their answers after completing a quiz.
+
+The review page will display:
+
+* The original question
+* The student’s answer
+* The correct answer
+* Whether the answer was correct or incorrect
+* A short explanation
+
+This feature allows students to learn from their mistakes instead of only seeing their final score.
+
+### 7.8 Homework and Task Manager
+
+Students can add Sejarah homework and revision tasks.
+
+Each task can include:
+
+* Task title
+* Description
+* Due date
+* Priority
+* Completion status
+* Optional image
+
+Examples of tasks include:
+
+* Complete Sejarah Chapter 2 exercise
+* Revise Chapter 4
+* Prepare Sejarah presentation
+* Finish teacher’s worksheet
+* Complete a chapter quiz
+
+The student can:
+
+* Add a task
+* Edit a task
+* Delete a task
+* Mark a task as completed
+* View pending tasks
+* View completed tasks
+
+### 7.9 Daily Study Streak
+
+The streak system records how many consecutive days the student completes at least one valid learning activity.
+
+A valid activity includes:
+
+* Completing a Sejarah quiz
+* Completing a homework task
+* Completing a chapter-learning activity
+* Uploading evidence of completed homework
+
+The streak will follow these rules:
+
+* The first completed activity starts a one-day streak.
+* Completing an activity the following day increases the streak.
+* Several activities completed on the same day only increase the streak once.
+* Missing one complete day resets the current streak.
+* The best streak will remain saved.
+* Opening the application without completing an activity will not increase the streak.
+
+The streak page will display:
+
+* Current streak
+* Best streak
+* Whether today’s activity has been completed
+* Activity during the previous seven days
+
+### 7.10 Progress Tracking
+
+Students can view their learning progress.
+
+The progress page will display:
+
+* Number of quizzes completed
+* Average quiz score
+* Current streak
+* Best streak
+* Chapters started
+* Chapters completed
+* Progress for each chapter
+
+Simple progress bars can be used to show how much of each chapter has been completed.
+
+Advanced graphs are not required for the first version.
+
+### 7.11 Profile Page
+
+The profile page will display:
+
+* Student name
+* Selected Form
+* Current streak
+* Best streak
+* Number of completed quizzes
+* Achievements
+* Homework history
+* Quiz history
+
+Students can also:
+
+* Edit their profile
+* Change their selected Form
+* Change application settings
+* Enable or disable notifications
+* View help information
+* Log out
+
+## 8. Application Navigation
+
+StudyStreak MY will use a bottom navigation bar with five main sections.
+
+### Home
+
+Displays:
+
+* Current streak
+* Tasks due today
+* Quiz summary
+* Average score
+* Quick access to learning content
+
+### Tasks
+
+Allows students to:
+
+* Add homework
+* View pending homework
+* View completed homework
+* Edit or delete tasks
+
+### Learn
+
+Allows students to:
+
+* Select Form
+* Select a chapter
+* Choose a notes language
+* Read notes
+* Complete quizzes
+
+### Progress
+
+Displays:
+
+* Quiz performance
+* Chapter progress
+* Current streak
+* Average score
+
+### Profile
+
+Displays:
+
+* Account information
+* Achievements
+* Quiz history
+* Settings
+* Logout option
+
+## 9. User Journey
+
+A typical student will use the application in the following way:
+
+1. The student creates an account.
+2. The student selects their Form.
+3. The student opens the Learn section.
+4. The student selects a Sejarah chapter.
+5. The student chooses English, Bahasa Melayu or Chinese.
+6. The student reads the simplified notes.
+7. The student views the important points.
+8. The student completes a chapter quiz.
+9. The application calculates the score.
+10. The student reviews incorrect answers.
+11. The quiz completion updates the daily streak.
+12. The student views their progress.
+13. The student adds upcoming Sejarah homework.
+
+## 10. Version 1 Scope
+
+The first version should focus on the essential features needed to produce a working and launchable application.
+
+### Must-Have Features
+
+* User registration and login
+* Form 1 to Form 5 selection
+* Sejarah chapter list
+* Language selection
+* English, Bahasa Melayu and Chinese notes
+* Important points
+* Multiple-choice quizzes
+* Quiz results
+* Review answers
+* Homework task manager
+* Daily streak
+* Basic progress tracking
+* Profile and logout
+
+### Recommended Content Scope
+
+Although the application will allow students to select Form 1 to Form 5, it is not necessary to complete every chapter before testing the application.
+
+The first working prototype may include:
+
+* One or two completed chapters for each Form
+
+This will provide approximately five to ten fully prepared chapters for the first release.
+
+Additional chapters can be added after the application has been tested.
+
+## 11. Features Not Included in Version 1
+
+To make the first version easier to complete, the following features will not be included:
+
+* Subjects other than Sejarah
+* Teacher accounts
+* Parent accounts
+* Student chat
+* Public leaderboards
+* Friend competitions
+* Live classes
+* Automatic essay marking
+* Textbook image scanning
+* Full PDF textbook uploads
+* Complete past-year examination-paper collections
+* Social-media functions
+* School timetable integration
+
+These features may be considered in future versions.
+
+## 12. Recommended Technology
+
+The application will be built using:
+
+* React Native
+* Expo
+* TypeScript
+* React Navigation
+
+A cloud backend may be used for:
+
+* User authentication
+* Database storage
+* Homework records
+* Quiz results
+* Streak records
+* Chapter progress
+
+A suitable backend service may provide:
+
+* Email and password authentication
+* Cloud database
+* File storage for homework images
+
+## 13. Suggested Database Structure
+
+### Users
+
+* User ID
+* Display name
+* Email
+* Selected Form
+* Current streak
+* Best streak
+* Last activity date
+* Account creation date
+
+### Tasks
+
+* Task ID
+* User ID
+* Title
+* Description
+* Due date
+* Priority
+* Status
+* Image
+* Completion date
+
+### Forms
+
+* Form ID
+* Form number
+* Description
+
+### Chapters
+
+* Chapter ID
+* Form number
+* Chapter number
+* Chapter title
+
+### Notes
+
+* Note ID
+* Chapter ID
+* Language
+* Title
+* Content
+* Section order
+
+### Questions
+
+* Question ID
+* Chapter ID
+* Question text
+* Answer options
+* Correct answer
+* Explanation
+
+### Quiz Attempts
+
+* Attempt ID
+* User ID
+* Chapter ID
+* Score
+* Total questions
+* Completion date
+
+### Daily Activities
+
+* Activity ID
+* User ID
+* Activity type
+* Activity date
+* Related task or quiz
+
+## 14. Development Stages
+
+### Stage 1: Application Foundation
+
+Develop:
+
+* React Native project
+* Navigation
+* Login
+* Registration
+* Profile
+* Backend connection
+
+### Stage 2: Homework Management
+
+Develop:
+
+* Task list
+* Add task
+* Edit task
+* Complete task
+* Delete task
+
+### Stage 3: Learning Library
+
+Develop:
+
+* Form selection
+* Chapter list
+* Chapter page
+* Notes-language selection
+
+### Stage 4: Multilingual Notes
+
+Add:
+
+* English notes
+* Bahasa Melayu notes
+* Chinese notes
+* Important-points section
+
+### Stage 5: Quiz System
+
+Develop:
+
+* Quiz questions
+* Answer selection
+* Score calculation
+* Result page
+* Answer-review page
+
+### Stage 6: Streak and Progress
+
+Develop:
+
+* Daily activity recording
+* Current streak
+* Best streak
+* Chapter progress
+* Quiz progress
+
+### Stage 7: Testing
+
+Test:
+
+* Account creation
+* Navigation
+* Task management
+* Language selection
+* Notes display
+* Quiz scoring
+* Streak calculation
+* Different screen sizes
+* Error handling
+
+## 15. Success Criteria
+
+The first version will be considered successful when:
+
+* At least 10 students test the application.
+* Students can create accounts without assistance.
+* Students can select Form 1 to Form 5.
+* Students can choose their preferred notes language.
+* Students can read notes and complete quizzes.
+* Quiz scores are calculated correctly.
+* Students can add and complete homework tasks.
+* The streak increases and resets correctly.
+* Student progress remains saved.
+* Most test users find the application easy to understand.
+* The application is ready for a final-project demonstration.
+
+## 16. Risks and Solutions
+
+### Risk 1: Too Much Learning Content
+
+Preparing notes for every Form and chapter in three languages requires a large amount of work.
+
+**Solution:** Begin with one or two complete chapters for each Form and add more chapters gradually.
+
+### Risk 2: Translation Errors
+
+Historical facts may be translated incorrectly or lose their original meaning.
+
+**Solution:** Check all three language versions carefully and ensure they contain the same meaning.
+
+### Risk 3: Incorrect Sejarah Information
+
+Incorrect names, dates or events may affect students’ learning.
+
+**Solution:** Check all notes and questions against reliable learning materials before publishing them.
+
+### Risk 4: Streak Calculation Errors
+
+The streak may update incorrectly because of date or time-zone differences.
+
+**Solution:** Calculate streaks using the Malaysian local date and test missed-day situations carefully.
+
+### Risk 5: Copyright Problems
+
+Uploading full textbooks or copyrighted examination papers may create legal issues.
+
+**Solution:** Create original summaries and original practice questions. Do not reproduce entire textbooks or examination papers.
+
+### Risk 6: Project Becomes Too Difficult
+
+Developing all planned features at the same time may delay completion.
+
+**Solution:** Complete the login, chapter, notes, quiz and streak systems first. Add optional features only after the main application works.
+
+## 17. Future Improvements
+
+Future versions may include:
+
+* More Sejarah chapters
+* AI-generated personalised notes
+* AI-generated practice questions
+* Flashcards
+* Structured questions
+* Essay-answer guidance
+* Teacher accounts
+* Classroom groups
+* Examination countdowns
+* Study reminders
+* Learning achievements
+* Offline notes
+* Voice reading
+* Additional Malaysian school subjects
+
+## 18. Unique Value of StudyStreak MY
+
+StudyStreak MY is different from a normal homework application because it combines:
+
+* Malaysian Sejarah learning content
+* Form 1 to Form 5 chapter organisation
+* English, Bahasa Melayu and Chinese notes
+* Practice quizzes
+* Homework management
+* Daily learning streaks
+* Progress tracking
+
+The multilingual feature can help students understand difficult historical concepts in the language they are most comfortable using.
+
+## 19. Project Summary
+
+StudyStreak MY is a React Native mobile application designed to help Malaysian secondary-school students study Sejarah from Form 1 to Form 5.
+
+Students can select their Form, choose a chapter, read notes in English, Bahasa Melayu or Chinese, complete quizzes, manage homework and build a daily study streak.
+
+The first release will focus on a limited number of fully prepared chapters while supporting the complete Form 1 to Form 5 application structure.
+
+By combining multilingual learning content, task management, quizzes and gamification, StudyStreak MY aims to make Sejarah more understandable, organised and engaging for Malaysian students.
+
+## 20. One-Sentence Product Description
+
+**StudyStreak MY is a multilingual React Native learning application that helps Malaysian secondary-school students study Sejarah, complete practice quizzes, manage homework and maintain a consistent daily study habit.**

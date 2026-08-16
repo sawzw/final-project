@@ -1,0 +1,14 @@
+.expo/
+.expo
+node_modules/
+dist/
+.env
+.env.local
+npm-debug.log*
+.expo-start.log
+.expo-start.err
+.expo-web.log
+.expo-web.err
+.expo-debug*.log
+.expo-debug*.err
+textbooks/*.pdf
