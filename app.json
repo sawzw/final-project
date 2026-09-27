@@ -4,17 +4,32 @@
     "slug": "studystreak-my",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "studystreakmy",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [
-      "**/*"
+      "assets/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.studystreak.my",
+      "buildNumber": "1"
     },
     "android": {
+      "package": "com.studystreak.my",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#f8fafc"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f766e"
       }
-    }
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#eef6f5"
+    },
+    "plugins": [
+      "expo-status-bar"
+    ]
   }
 }

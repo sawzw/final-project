@@ -12,3 +12,6 @@ npm-debug.log*
 .expo-debug*.log
 .expo-debug*.err
 textbooks/*.pdf
+expo-qr.html
+expo-qr.svg
+expo-qr.png

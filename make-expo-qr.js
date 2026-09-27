@@ -1,4 +1,5 @@
 const fs = require('fs');
+const zlib = require('zlib');
 const QRCode = require('./node_modules/qrcode-terminal/vendor/QRCode');
 const QRErrorCorrectLevel = require('./node_modules/qrcode-terminal/vendor/QRCode/QRErrorCorrectLevel');
 
@@ -69,4 +70,53 @@ const html = `<!doctype html>
 
 fs.writeFileSync('expo-qr.svg', svg);
 fs.writeFileSync('expo-qr.html', html);
+
+// Write a portable PNG copy too, so the QR code can be opened directly in
+// image viewers without needing an SVG-capable browser.
+const pngPixels = Buffer.alloc((size * 4 + 1) * size);
+for (let y = 0; y < size; y += 1) {
+  const rowOffset = y * (size * 4 + 1);
+  pngPixels[rowOffset] = 0; // PNG filter: none
+  for (let x = 0; x < size; x += 1) {
+    const qrRow = Math.floor(y / cell) - quiet;
+    const qrCol = Math.floor(x / cell) - quiet;
+    const dark = qrRow >= 0 && qrRow < moduleCount && qrCol >= 0 && qrCol < moduleCount && modules[qrRow][qrCol];
+    const pixelOffset = rowOffset + 1 + x * 4;
+    const color = dark ? 0 : 255;
+    pngPixels[pixelOffset] = color;
+    pngPixels[pixelOffset + 1] = color;
+    pngPixels[pixelOffset + 2] = color;
+    pngPixels[pixelOffset + 3] = 255;
+  }
+}
+
+const crcTable = Array.from({ length: 256 }, (_, index) => {
+  let value = index;
+  for (let bit = 0; bit < 8; bit += 1) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
+  return value >>> 0;
+});
+const crc32 = (buffer) => {
+  let value = 0xffffffff;
+  for (const byte of buffer) value = crcTable[(value ^ byte) & 0xff] ^ (value >>> 8);
+  return (value ^ 0xffffffff) >>> 0;
+};
+const pngChunk = (type, data) => {
+  const label = Buffer.from(type);
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length);
+  const checksum = Buffer.alloc(4);
+  checksum.writeUInt32BE(crc32(Buffer.concat([label, data])));
+  return Buffer.concat([length, label, data, checksum]);
+};
+const header = Buffer.alloc(13);
+header.writeUInt32BE(size, 0);
+header.writeUInt32BE(size, 4);
+header[8] = 8; // bit depth
+header[9] = 6; // RGBA
+fs.writeFileSync('expo-qr.png', Buffer.concat([
+  Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+  pngChunk('IHDR', header),
+  pngChunk('IDAT', zlib.deflateSync(pngPixels)),
+  pngChunk('IEND', Buffer.alloc(0)),
+]));
 console.log(url);
