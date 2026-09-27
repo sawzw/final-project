@@ -8,6 +8,7 @@ import {
   Alert,
   Animated,
   KeyboardAvoidingView,
+  Linking,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Platform,
@@ -43,6 +44,7 @@ type User = {
   id: string;
   displayName: string;
   email: string;
+  password?: string;
   form: string;
   appLanguage?: AppLanguage;
   themeMode?: ThemeMode;
@@ -128,6 +130,18 @@ type AppData = {
   activityLogsByUser: Record<string, UserActivity[]>;
   completedNotesByUser: Record<string, Record<string, boolean>>;
   aiChatsByUser: Record<string, Record<string, AiChatMessage[]>>;
+  aiConsentByUser: Record<string, boolean>;
+};
+
+type UserCloudData = {
+  user?: User;
+  tasks?: HomeworkTask[];
+  attempts?: QuizAttempt[];
+  activities?: DailyActivity[];
+  activityLogs?: UserActivity[];
+  completedNotes?: Record<string, boolean>;
+  aiChats?: Record<string, AiChatMessage[]>;
+  aiConsent?: boolean;
 };
 
 const schoolForms: SchoolForm[] = ["Form 1", "Form 2", "Form 3", "Form 4", "Form 5"];
@@ -138,6 +152,8 @@ const appTabs: Tab[] = ["Home", "Tasks", "Learn", "AI", "Progress", "Profile"];
 const AI_TUTOR_URL = supabaseUrl ? `${supabaseUrl}/functions/v1/ai-tutor` : "";
 const AI_REQUEST_TIMEOUT_MS = 20_000;
 const MAX_AI_QUESTION_LENGTH = 1_000;
+const PRIVACY_POLICY_URL = "https://sawzw.github.io/final-project/privacy-policy.html";
+const TERMS_URL = "https://sawzw.github.io/final-project/terms.html";
 const topSafeInset = Platform.OS === "android" ? RNStatusBar.currentHeight ?? 0 : 8;
 
 const translations = {
@@ -168,6 +184,10 @@ const translations = {
     dark: "Dark",
     saveProfile: "Save profile",
     logout: "Log out",
+    ageConfirm: "I confirm I am 13 or older and will use AI study help responsibly.",
+    ageConfirmRequired: "Please confirm you are 13 or older to create an account.",
+    privacyPolicy: "Privacy policy",
+    termsOfUse: "Terms of use",
     alreadyHaveAccount: "Already have an account? Login",
     needAccount: "Need an account? Sign up",
     activityDoneToday: "Today's study activity is completed.",
@@ -260,7 +280,13 @@ const translations = {
     accountActivity: "Account activity",
     noAccountActivity: "No activity recorded yet.",
     privacyNote: "Privacy note",
-    privacyBody: "This prototype stores account, login, and study activity in a local JSON database on this device for demonstration. A production version should use secure authentication, database rules, and a backend for AI requests.",
+    privacyBody: "StudyStreak MY uses Supabase Auth for accounts when configured, stores study progress for your account, and sends AI questions or summaries to a Supabase Edge Function before Gemini processes them. The Gemini API key is kept off the device.",
+    deleteAccount: "Delete account",
+    deleteAccountWarning: "This removes your account and associated study data. This action cannot be undone.",
+    deleteAccountConfirm: "Delete my account",
+    aiConsentTitle: "Use Gemini AI?",
+    aiConsentBody: "Your chapter material and question will be sent to the secure Supabase AI function, which uses Gemini to generate the response. Do not include private personal information.",
+    aiConsentAgree: "Continue",
     studyStreak: "Study streak",
     streakSubtitle: "One valid activity per day keeps the streak active.",
     validActivities: "Valid activities",
@@ -307,6 +333,10 @@ const translations = {
     dark: "Gelap",
     saveProfile: "Simpan profil",
     logout: "Log keluar",
+    ageConfirm: "Saya mengesahkan saya berumur 13 tahun atau lebih dan akan menggunakan bantuan AI dengan bertanggungjawab.",
+    ageConfirmRequired: "Sila sahkan anda berumur 13 tahun atau lebih untuk mencipta akaun.",
+    privacyPolicy: "Dasar privasi",
+    termsOfUse: "Terma penggunaan",
     alreadyHaveAccount: "Sudah ada akaun? Log masuk",
     needAccount: "Perlu akaun? Daftar",
     activityDoneToday: "Aktiviti pembelajaran hari ini sudah lengkap.",
@@ -399,7 +429,13 @@ const translations = {
     accountActivity: "Aktiviti akaun",
     noAccountActivity: "Belum ada aktiviti direkodkan.",
     privacyNote: "Nota privasi",
-    privacyBody: "Prototaip ini menyimpan akaun, log masuk dan aktiviti belajar dalam pangkalan data JSON setempat pada peranti ini untuk demonstrasi. Versi sebenar perlu menggunakan pengesahan selamat, peraturan pangkalan data dan backend untuk permintaan AI.",
+    privacyBody: "StudyStreak MY menggunakan Supabase Auth untuk akaun apabila dikonfigurasi, menyimpan kemajuan belajar untuk akaun anda, dan menghantar soalan atau ringkasan AI ke Supabase Edge Function sebelum diproses oleh Gemini. API key Gemini tidak disimpan pada peranti.",
+    deleteAccount: "Padam akaun",
+    deleteAccountWarning: "Tindakan ini memadam akaun dan data belajar berkaitan. Tindakan ini tidak boleh dibatalkan.",
+    deleteAccountConfirm: "Padam akaun saya",
+    aiConsentTitle: "Guna AI Gemini?",
+    aiConsentBody: "Bahan bab dan soalan anda akan dihantar ke fungsi AI Supabase yang selamat, kemudian Gemini menjana jawapan. Jangan masukkan maklumat peribadi sulit.",
+    aiConsentAgree: "Teruskan",
     studyStreak: "Streak belajar",
     streakSubtitle: "Satu aktiviti sah setiap hari mengekalkan streak.",
     validActivities: "Aktiviti sah",
@@ -446,6 +482,10 @@ const translations = {
     dark: "深色",
     saveProfile: "保存资料",
     logout: "登出",
+    ageConfirm: "我确认自己已满 13 岁，并会负责任地使用 AI 学习帮助。",
+    ageConfirmRequired: "请确认你已满 13 岁，才能创建账号。",
+    privacyPolicy: "隐私政策",
+    termsOfUse: "使用条款",
     alreadyHaveAccount: "已有账号？登录",
     needAccount: "需要账号？注册",
     activityDoneToday: "今天的学习活动已完成。",
@@ -538,7 +578,13 @@ const translations = {
     accountActivity: "账号活动",
     noAccountActivity: "还没有记录任何活动。",
     privacyNote: "隐私说明",
-    privacyBody: "此原型把账号、登录和学习活动储存在本设备的本地 JSON 数据库中作为演示。正式版本应使用安全身份验证、数据库规则和后端处理 AI 请求。",
+    privacyBody: "StudyStreak MY 在配置后使用 Supabase Auth 管理账号，为你的账号保存学习进度，并把 AI 问题或摘要请求发送到安全的 Supabase Edge Function，再由 Gemini 处理。Gemini API key 不会保存在设备上。",
+    deleteAccount: "删除账号",
+    deleteAccountWarning: "这会删除你的账号和相关学习数据。此操作无法撤销。",
+    deleteAccountConfirm: "删除我的账号",
+    aiConsentTitle: "使用 Gemini AI？",
+    aiConsentBody: "你的章节材料和问题会发送到安全的 Supabase AI 函数，再由 Gemini 生成回复。请不要输入私人敏感资料。",
+    aiConsentAgree: "继续",
     studyStreak: "学习 streak",
     streakSubtitle: "每天完成一个有效活动即可保持 streak。",
     validActivities: "有效活动",
@@ -953,25 +999,34 @@ const emptyData: AppData = {
   activitiesByUser: {},
   activityLogsByUser: {},
   completedNotesByUser: {},
-  aiChatsByUser: {}
+  aiChatsByUser: {},
+  aiConsentByUser: {}
 };
 
 const normalizeAppData = (value: unknown): AppData => {
   const data = (value && typeof value === "object" ? value : {}) as Partial<AppData>;
 
   return {
-    // Passwords from older prototype builds are deliberately discarded.
-    users: Array.isArray(data.users)
-      ? (data.users as Array<User & { password?: unknown }>).map(({ password: _legacyPassword, ...user }) => user)
-      : [],
+    users: data.users ?? [],
     activeUserId: data.activeUserId,
     tasksByUser: data.tasksByUser ?? {},
     attemptsByUser: data.attemptsByUser ?? {},
     activitiesByUser: data.activitiesByUser ?? {},
     activityLogsByUser: data.activityLogsByUser ?? {},
     completedNotesByUser: data.completedNotesByUser ?? {},
-    aiChatsByUser: data.aiChatsByUser ?? {}
+    aiChatsByUser: data.aiChatsByUser ?? {},
+    aiConsentByUser: data.aiConsentByUser ?? {}
   };
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => Boolean(value && typeof value === "object" && !Array.isArray(value));
+const isSchoolForm = (value: unknown): value is SchoolForm => typeof value === "string" && schoolForms.includes(value as SchoolForm);
+const isAppLanguage = (value: unknown): value is AppLanguage => typeof value === "string" && appLanguages.includes(value as AppLanguage);
+const isThemeMode = (value: unknown): value is ThemeMode => typeof value === "string" && themeModes.includes(value as ThemeMode);
+
+const sanitizeCloudUser = (user: User): User => {
+  const { password: _password, ...safeUser } = user;
+  return safeUser;
 };
 
 const withUserStores = (current: AppData, userId: string, sourceUserId?: string): AppData => ({
@@ -996,8 +1051,113 @@ const withUserStores = (current: AppData, userId: string, sourceUserId?: string)
   aiChatsByUser: {
     ...current.aiChatsByUser,
     [userId]: current.aiChatsByUser[userId] ?? (sourceUserId ? current.aiChatsByUser[sourceUserId] ?? {} : {})
+  },
+  aiConsentByUser: {
+    ...current.aiConsentByUser,
+    [userId]: current.aiConsentByUser[userId] ?? (sourceUserId ? current.aiConsentByUser[sourceUserId] ?? false : false)
   }
 });
+
+const normalizeCloudUser = (value: unknown, fallback: User): User => {
+  const source = isRecord(value) ? value : {};
+  return sanitizeCloudUser({
+    ...fallback,
+    displayName: typeof source.displayName === "string" ? source.displayName.slice(0, 80) : fallback.displayName,
+    email: typeof source.email === "string" ? source.email : fallback.email,
+    form: isSchoolForm(source.form) ? source.form : fallback.form,
+    appLanguage: isAppLanguage(source.appLanguage) ? source.appLanguage : fallback.appLanguage ?? "English",
+    themeMode: isThemeMode(source.themeMode) ? source.themeMode : fallback.themeMode ?? "Light",
+    notificationsEnabled: typeof source.notificationsEnabled === "boolean" ? source.notificationsEnabled : fallback.notificationsEnabled,
+    currentStreak: typeof source.currentStreak === "number" ? source.currentStreak : fallback.currentStreak,
+    bestStreak: typeof source.bestStreak === "number" ? source.bestStreak : fallback.bestStreak,
+    lastActivityDate: typeof source.lastActivityDate === "string" ? source.lastActivityDate : fallback.lastActivityDate,
+    createdAt: typeof source.createdAt === "string" ? source.createdAt : fallback.createdAt
+  });
+};
+
+const buildUserCloudData = (current: AppData, userId: string): UserCloudData => {
+  const user = current.users.find((item) => item.id === userId);
+  return {
+    user: user ? sanitizeCloudUser(user) : undefined,
+    tasks: current.tasksByUser[userId] ?? [],
+    attempts: current.attemptsByUser[userId] ?? [],
+    activities: current.activitiesByUser[userId] ?? [],
+    activityLogs: current.activityLogsByUser[userId] ?? [],
+    completedNotes: current.completedNotesByUser[userId] ?? {},
+    aiChats: current.aiChatsByUser[userId] ?? {},
+    aiConsent: Boolean(current.aiConsentByUser[userId])
+  };
+};
+
+const applyUserCloudData = (current: AppData, userId: string, payload: unknown, fallbackUser: User): AppData => {
+  const cloud = isRecord(payload) ? (payload as Partial<UserCloudData>) : {};
+  const user = normalizeCloudUser(cloud.user, fallbackUser);
+  const existingUsers = current.users.filter((item) => item.id !== userId);
+  const base = withUserStores({ ...current, users: [...existingUsers, user], activeUserId: userId }, userId);
+
+  return {
+    ...base,
+    tasksByUser: { ...base.tasksByUser, [userId]: Array.isArray(cloud.tasks) ? cloud.tasks : base.tasksByUser[userId] ?? [] },
+    attemptsByUser: { ...base.attemptsByUser, [userId]: Array.isArray(cloud.attempts) ? cloud.attempts : base.attemptsByUser[userId] ?? [] },
+    activitiesByUser: {
+      ...base.activitiesByUser,
+      [userId]: Array.isArray(cloud.activities) ? cloud.activities : base.activitiesByUser[userId] ?? []
+    },
+    activityLogsByUser: {
+      ...base.activityLogsByUser,
+      [userId]: Array.isArray(cloud.activityLogs) ? cloud.activityLogs : base.activityLogsByUser[userId] ?? []
+    },
+    completedNotesByUser: {
+      ...base.completedNotesByUser,
+      [userId]: isRecord(cloud.completedNotes) ? (cloud.completedNotes as Record<string, boolean>) : base.completedNotesByUser[userId] ?? {}
+    },
+    aiChatsByUser: {
+      ...base.aiChatsByUser,
+      [userId]: isRecord(cloud.aiChats) ? (cloud.aiChats as Record<string, AiChatMessage[]>) : base.aiChatsByUser[userId] ?? {}
+    },
+    aiConsentByUser: {
+      ...base.aiConsentByUser,
+      [userId]: typeof cloud.aiConsent === "boolean" ? cloud.aiConsent : Boolean(base.aiConsentByUser[userId])
+    }
+  };
+};
+
+const syncUserCloudData = async (current: AppData, userId: string) => {
+  if (!isSupabaseConfigured || !userId) {
+    return;
+  }
+  const { error } = await supabase.from("user_app_data").upsert({
+    user_id: userId,
+    payload: buildUserCloudData(current, userId),
+    updated_at: new Date().toISOString()
+  });
+  if (error) {
+    console.warn("Cloud sync failed", error.message);
+  }
+};
+
+const loadUserCloudData = async (current: AppData, userId: string, fallbackUser: User): Promise<AppData> => {
+  const base = withUserStores({
+    ...current,
+    users: current.users.some((user) => user.id === userId) ? current.users : [...current.users, sanitizeCloudUser(fallbackUser)],
+    activeUserId: userId
+  }, userId);
+
+  if (!isSupabaseConfigured) {
+    return base;
+  }
+
+  const { data: row, error } = await supabase.from("user_app_data").select("payload").eq("user_id", userId).maybeSingle();
+  if (error) {
+    console.warn("Cloud data load failed", error.message);
+    return base;
+  }
+  if (row?.payload) {
+    return applyUserCloudData(base, userId, row.payload, fallbackUser);
+  }
+  await syncUserCloudData(base, userId);
+  return base;
+};
 
 const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -1023,6 +1183,32 @@ const appendUserActivity = (
       ...current.activityLogsByUser,
       [userId]: [activity, ...(current.activityLogsByUser[userId] ?? [])].slice(0, 80)
     }
+  };
+};
+
+const removeUserStores = (current: AppData, userId: string): AppData => {
+  const {
+    [userId]: _tasks,
+    ...tasksByUser
+  } = current.tasksByUser;
+  const { [userId]: _attempts, ...attemptsByUser } = current.attemptsByUser;
+  const { [userId]: _activities, ...activitiesByUser } = current.activitiesByUser;
+  const { [userId]: _activityLogs, ...activityLogsByUser } = current.activityLogsByUser;
+  const { [userId]: _completedNotes, ...completedNotesByUser } = current.completedNotesByUser;
+  const { [userId]: _aiChats, ...aiChatsByUser } = current.aiChatsByUser;
+  const { [userId]: _aiConsent, ...aiConsentByUser } = current.aiConsentByUser;
+
+  return {
+    ...current,
+    users: current.users.filter((user) => user.id !== userId),
+    activeUserId: current.activeUserId === userId ? undefined : current.activeUserId,
+    tasksByUser,
+    attemptsByUser,
+    activitiesByUser,
+    activityLogsByUser,
+    completedNotesByUser,
+    aiChatsByUser,
+    aiConsentByUser
   };
 };
 
@@ -1125,15 +1311,36 @@ export default function App() {
         let nextData = await loadJsonDatabase(emptyData, normalizeAppData);
         if (isSupabaseConfigured) {
           const { data: authData } = await supabase.auth.getUser();
-          const authenticatedId = authData.user?.id;
-          nextData = {
-            ...nextData,
-            activeUserId: authenticatedId && nextData.users.some((user) => user.id === authenticatedId)
-              ? authenticatedId
-              : undefined
-          };
-        } else {
-          nextData = { ...nextData, activeUserId: undefined };
+          const authenticatedUser = authData.user;
+          if (authenticatedUser) {
+            const metadata = authenticatedUser.user_metadata ?? {};
+            const existingUser = nextData.users.find((user) => user.id === authenticatedUser.id);
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("display_name,email,school_form,app_language,theme_mode,notifications_enabled,current_streak,best_streak,last_activity_date,created_at")
+              .eq("id", authenticatedUser.id)
+              .maybeSingle();
+            const fallbackUser: User = existingUser ?? {
+              id: authenticatedUser.id,
+              displayName: typeof profileData?.display_name === "string"
+                ? profileData.display_name.slice(0, 80)
+                : typeof metadata.display_name === "string"
+                  ? metadata.display_name.slice(0, 80)
+                  : (authenticatedUser.email ?? "student").split("@")[0],
+              email: typeof profileData?.email === "string" ? profileData.email : authenticatedUser.email ?? "",
+              form: isSchoolForm(profileData?.school_form) ? profileData.school_form : isSchoolForm(metadata.school_form) ? metadata.school_form : "Form 1",
+              appLanguage: isAppLanguage(profileData?.app_language) ? profileData.app_language : "English",
+              themeMode: isThemeMode(profileData?.theme_mode) ? profileData.theme_mode : "Light",
+              notificationsEnabled: typeof profileData?.notifications_enabled === "boolean" ? profileData.notifications_enabled : false,
+              currentStreak: typeof profileData?.current_streak === "number" ? profileData.current_streak : 0,
+              bestStreak: typeof profileData?.best_streak === "number" ? profileData.best_streak : 0,
+              lastActivityDate: typeof profileData?.last_activity_date === "string" ? profileData.last_activity_date : undefined,
+              createdAt: typeof profileData?.created_at === "string" ? profileData.created_at : authenticatedUser.created_at
+            };
+            nextData = await loadUserCloudData(nextData, authenticatedUser.id, fallbackUser);
+          } else {
+            nextData = { ...nextData, activeUserId: undefined };
+          }
         }
         if (mounted) {
           setData(nextData);
@@ -1159,6 +1366,11 @@ export default function App() {
       saveJsonDatabase(data).catch(() => {
         Alert.alert("Storage error", "Changes could not be saved on this device.");
       });
+      if (isSupabaseConfigured && data.activeUserId) {
+        syncUserCloudData(data, data.activeUserId).catch(() => {
+          console.warn("Cloud sync could not be completed.");
+        });
+      }
     }
   }, [data, loaded]);
 
@@ -1170,12 +1382,13 @@ export default function App() {
   const activityLogs = userId ? data.activityLogsByUser[userId] ?? [] : [];
   const completedNotes = userId ? data.completedNotesByUser[userId] ?? {} : {};
   const aiChats = userId ? data.aiChatsByUser[userId] ?? {} : {};
+  const hasAiConsent = userId ? Boolean(data.aiConsentByUser[userId]) : false;
 
   const updateData = (updater: (current: AppData) => AppData) => {
     setData((current) => updater(current));
   };
 
-  const handleAuthSubmit = async (payload: { displayName: string; email: string; password: string; form: SchoolForm }) => {
+  const handleAuthSubmit = async (payload: { displayName: string; email: string; password: string; form: SchoolForm; ageConfirmed: boolean }) => {
     const email = payload.email.trim().toLowerCase();
 
     if (!isValidEmail(payload.email)) {
@@ -1184,8 +1397,63 @@ export default function App() {
     if (payload.password.length < 8 || payload.password.length > 128) {
       return "Password must be between 8 and 128 characters.";
     }
+    if (authMode === "signup" && !payload.ageConfirmed) {
+      return getText("English", "ageConfirmRequired");
+    }
     if (!isSupabaseConfigured) {
-      return "Secure authentication is not configured. Add the Supabase publishable key to .env and restart Expo.";
+      setAuthBusy(true);
+      try {
+        if (authMode === "signup") {
+          if (!payload.displayName.trim()) {
+            return "Please enter your display name.";
+          }
+          if (data.users.some((user) => user.email.toLowerCase() === email)) {
+            return "Use login for this email address.";
+          }
+          const user: User = {
+            id: makeId(),
+            displayName: payload.displayName.trim().slice(0, 80),
+            email,
+            password: payload.password,
+            form: payload.form,
+            appLanguage: "English",
+            themeMode: "Light",
+            notificationsEnabled: false,
+            currentStreak: 0,
+            bestStreak: 0,
+            createdAt: new Date().toISOString()
+          };
+
+          setData((current) =>
+            appendUserActivity(
+              withUserStores(
+                {
+                  ...current,
+                  users: [...current.users, user],
+                  activeUserId: user.id
+                },
+                user.id
+              ),
+              user.id,
+              "signup",
+              "Registered new local account"
+            )
+          );
+          return undefined;
+        }
+
+        const user = data.users.find((item) => item.email.toLowerCase() === email);
+        if (!user || user.password !== payload.password) {
+          return "Email or password is incorrect.";
+        }
+
+        setData((current) => appendUserActivity({ ...withUserStores(current, user.id), activeUserId: user.id }, user.id, "login", "Logged in locally"));
+        return undefined;
+      } catch {
+        return "Could not open the local JSON database. Please try again.";
+      } finally {
+        setAuthBusy(false);
+      }
     }
 
     setAuthBusy(true);
@@ -1213,7 +1481,7 @@ export default function App() {
           form: payload.form,
           appLanguage: "English",
           themeMode: "Light",
-          notificationsEnabled: true,
+          notificationsEnabled: false,
           currentStreak: 0,
           bestStreak: 0,
           createdAt: new Date().toISOString()
@@ -1258,7 +1526,7 @@ export default function App() {
         form: schoolForms.includes(metadata.school_form) ? metadata.school_form : "Form 1",
         appLanguage: "English",
         themeMode: "Light",
-        notificationsEnabled: true,
+        notificationsEnabled: false,
         currentStreak: 0,
         bestStreak: 0,
         createdAt: loginData.user.created_at
@@ -1274,11 +1542,13 @@ export default function App() {
         if (profileError) return "Signed in, but the profile could not be loaded.";
       }
 
-      setData((current) => appendUserActivity({
-        ...withUserStores(current, user.id),
-        users: existingUser ? current.users : [...current.users, user],
+      const loginBaseData = {
+        ...withUserStores(data, user.id),
+        users: existingUser ? data.users : [...data.users, user],
         activeUserId: user.id
-      }, user.id, "login", "Logged in"));
+      };
+      const cloudData = await loadUserCloudData(loginBaseData, user.id, user);
+      setData(appendUserActivity({ ...cloudData, activeUserId: user.id }, user.id, "login", "Logged in"));
       return undefined;
     } catch {
       return "Could not open the local JSON database. Please try again.";
@@ -1409,6 +1679,14 @@ export default function App() {
     activities,
     activityLogs,
     completedNotes,
+    hasAiConsent,
+    onAcceptAiConsent: () => {
+      if (!userId) return;
+      updateData((current) => ({
+        ...current,
+        aiConsentByUser: { ...current.aiConsentByUser, [userId]: true }
+      }));
+    },
     selectedLanguage,
     isDark,
     t: (key: keyof typeof translations.English) => getText(activeUserWithLiveStreak.appLanguage ?? "English", key),
@@ -1476,6 +1754,8 @@ export default function App() {
                 selectedLanguage={selectedLanguage}
                 chatMessagesByChapter={aiChats}
                 isDark={isDark}
+                hasAiConsent={hasAiConsent}
+                onAcceptAiConsent={commonProps.onAcceptAiConsent}
                 t={commonProps.t}
                 onSaveChatMessages={(chapterId, messages) => {
                   updateData((current) => {
@@ -1500,28 +1780,45 @@ export default function App() {
             <View style={[styles.tabPage, { width }]}>
               <ProfileScreen
                 {...commonProps}
-                onUpdateProfile={(displayName, form, notificationsEnabled, appLanguage, themeMode) => {
+                onUpdateProfile={(displayName, form, appLanguage, themeMode) => {
                   const safeDisplayName = displayName.trim().slice(0, 80);
-                  void supabase.from("profiles").update({
-                    display_name: safeDisplayName,
-                    school_form: form,
-                    notifications_enabled: notificationsEnabled,
-                    app_language: appLanguage,
-                    theme_mode: themeMode,
-                    updated_at: new Date().toISOString()
-                  }).eq("id", userId);
+                  if (isSupabaseConfigured) {
+                    void supabase.from("profiles").update({
+                      display_name: safeDisplayName,
+                      school_form: form,
+                      app_language: appLanguage,
+                      theme_mode: themeMode,
+                      updated_at: new Date().toISOString()
+                    }).eq("id", userId);
+                  }
                   updateData((current) => ({
                     ...appendUserActivity(current, userId, "profile_update", "Updated profile settings"),
                     users: current.users.map((user) =>
-                      user.id === userId ? { ...user, displayName: safeDisplayName, form, notificationsEnabled, appLanguage, themeMode } : user
+                      user.id === userId ? { ...user, displayName: safeDisplayName, form, appLanguage, themeMode } : user
                     )
                   }));
                 }}
                 onLogout={() => {
-                  void supabase.auth.signOut();
+                  if (isSupabaseConfigured) {
+                    void supabase.auth.signOut();
+                  }
                   setScreen({ name: "tabs" });
                   changeTab("Home", false);
                   updateData((current) => ({ ...appendUserActivity(current, userId, "logout", "Logged out"), activeUserId: undefined }));
+                }}
+                onDeleteAccount={async () => {
+                  const deletingUserId = userId;
+                  if (!deletingUserId) return;
+                  if (isSupabaseConfigured) {
+                    const { error } = await supabase.functions.invoke("delete-account", { body: {} });
+                    if (error) {
+                      Alert.alert("Delete account", error.message || "Account deletion could not be completed.");
+                      return;
+                    }
+                  }
+                  setScreen({ name: "tabs" });
+                  changeTab("Home", false);
+                  updateData((current) => removeUserStores(current, deletingUserId));
                 }}
               />
             </View>
@@ -1569,7 +1866,18 @@ export default function App() {
           t={commonProps.t}
           onBack={() => setScreen({ name: "tabs" })}
           onOpenNotes={(chapterId) => setScreen({ name: "notes", chapterId })}
-          onStartQuiz={(chapterId) => setScreen({ name: "quiz", chapterId, returnTo: "chapter" })}
+          onStartQuiz={(chapterId) => {
+            const chapter = chapters.find((item) => item.id === chapterId);
+            const formChapters = chapters.filter((item) => item.form === chapter?.form);
+            const index = formChapters.findIndex((item) => item.id === chapterId);
+            const previousChapter = formChapters[index - 1];
+            const locked = index > 0 && !attempts.some((attempt) => attempt.chapterId === previousChapter?.id);
+            if (locked) {
+              Alert.alert(commonProps.t("lessonLocked"), commonProps.t("noQuizAttemptBody"));
+              return;
+            }
+            setScreen({ name: "quiz", chapterId, returnTo: "chapter" });
+          }}
         />
       )}
       {screen.name === "notes" && (
@@ -1578,6 +1886,8 @@ export default function App() {
           completed={Boolean(completedNotes[screen.chapterId])}
           selectedLanguage={selectedLanguage}
           chatMessages={aiChats[screen.chapterId] ?? []}
+          hasAiConsent={hasAiConsent}
+          onAcceptAiConsent={commonProps.onAcceptAiConsent}
           t={commonProps.t}
           onBack={() => setScreen({ name: "chapter", chapterId: screen.chapterId })}
           onSaveChatMessages={(messages) => {
@@ -1670,13 +1980,14 @@ function AuthForm({
   mode: "login" | "signup";
   loading: boolean;
   onSwitch: () => void;
-  onSubmit: (payload: { displayName: string; email: string; password: string; form: SchoolForm }) => Promise<string | undefined>;
+  onSubmit: (payload: { displayName: string; email: string; password: string; form: SchoolForm; ageConfirmed: boolean }) => Promise<string | undefined>;
 }) {
   const isDark = React.useContext(ThemeContext);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [form, setForm] = useState<SchoolForm>("Form 1");
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [message, setMessage] = useState("");
   const appLanguage: AppLanguage = "English";
   const t = (key: keyof typeof translations.English) => getText(appLanguage, key);
@@ -1697,6 +2008,18 @@ function AuthForm({
       )}
       <Field label={t("email")} value={email} onChangeText={setEmail} placeholder="student@email.com" keyboardType="email-address" maxLength={254} />
       <Field label={t("password")} value={password} onChangeText={setPassword} placeholder="8-128 characters" secureTextEntry maxLength={128} />
+      {mode === "signup" && (
+        <TouchableOpacity
+          activeOpacity={0.82}
+          style={[styles.consentRow, isDark && styles.toggleRowDark]}
+          onPress={() => setAgeConfirmed((current) => !current)}
+        >
+          <View style={[styles.checkbox, ageConfirmed && styles.checkboxChecked]}>
+            <Text style={styles.checkboxMark}>{ageConfirmed ? "OK" : ""}</Text>
+          </View>
+          <Text style={[styles.consentText, isDark && styles.mutedDark]}>{t("ageConfirm")}</Text>
+        </TouchableOpacity>
+      )}
       {message ? (
         <View style={[styles.messageBox, isDark && styles.messageBoxDark]}>
           <Text style={styles.messageText}>{message}</Text>
@@ -1706,7 +2029,7 @@ function AuthForm({
         label={loading ? "Please wait..." : mode === "signup" ? t("signUp") : t("login")}
         disabled={loading}
         onPress={async () => {
-          const error = await onSubmit({ displayName, email, password, form });
+          const error = await onSubmit({ displayName, email, password, form, ageConfirmed });
           setMessage(error ?? "");
         }}
       />
@@ -1714,6 +2037,7 @@ function AuthForm({
         disabled={loading}
         onPress={() => {
           setMessage("");
+          setAgeConfirmed(false);
           onSwitch();
         }}
         style={styles.linkButton}
@@ -1743,12 +2067,14 @@ function HomeScreen({
   const pathItems = formChapters.map((chapter) => {
     const chapterAttempts = attempts.filter((attempt) => attempt.chapterId === chapter.id);
     const bestScore = chapterAttempts.length ? Math.max(...chapterAttempts.map((attempt) => percent(attempt.score, attempt.total))) : 0;
+    const quizCompleted = chapterAttempts.length > 0;
     const progress = (completedNotes[chapter.id] ? 50 : 0) + (chapterAttempts.length ? 50 : 0);
     return {
       chapter,
       bestScore,
       progress,
-      complete: progress >= 100,
+      quizCompleted,
+      complete: quizCompleted,
       started: progress > 0
     };
   });
@@ -1808,9 +2134,9 @@ function HomeScreen({
                 {dailyGoalDone ? t("activityDoneToday") : t("completeActivityToday")}
               </Text>
             </View>
-          </View>
+        </View>
         {pathItems.map((item, index) => {
-          const locked = index > firstOpenIndex + 1;
+          const locked = index > 0 && !pathItems[index - 1]?.quizCompleted;
           const active = index === firstOpenIndex;
           const stepOffset = index % 4 === 1 ? styles.duoMapStepRight : index % 4 === 3 ? styles.duoMapStepLeft : undefined;
           return (
@@ -1824,7 +2150,7 @@ function HomeScreen({
                   styles.duoMapNode,
                   isDark && styles.duoMapNodeDark,
                   item.complete && styles.duoMapNodeComplete,
-                  active && styles.duoMapNodeActive,
+                  active && !locked && styles.duoMapNodeActive,
                   locked && styles.duoMapNodeLocked
                 ]}
                 onPress={() => setScreen({ name: "quiz", chapterId: item.chapter.id, returnTo: "tabs" })}
@@ -1834,7 +2160,7 @@ function HomeScreen({
                 </Text>
               </TouchableOpacity>
               <Text style={[styles.duoMapCaption, isDark && styles.mutedDark]} numberOfLines={2}>
-                {item.complete ? t("lessonComplete") : locked ? t("lessonLocked") : t("startQuiz")}
+                {item.complete ? t("lessonComplete") : locked ? t("lessonLocked") : `${t("startQuiz")} (${item.chapter.quiz.length})`}
               </Text>
             </View>
           );
@@ -1865,6 +2191,8 @@ type CommonScreenProps = {
   activities: DailyActivity[];
   activityLogs: UserActivity[];
   completedNotes: Record<string, boolean>;
+  hasAiConsent: boolean;
+  onAcceptAiConsent: () => void;
   selectedLanguage: NoteLanguage;
   isDark: boolean;
   t: (key: keyof typeof translations.English) => string;
@@ -1999,19 +2327,29 @@ function LearnScreen({ user, attempts, completedNotes, selectedLanguage, isDark,
       <ScreenHeader title={t("learn")} subtitle={t("learnSubtitle")} />
       <Text style={[styles.label, isDark && styles.textDark]}>{t("schoolForm")}: {selectedForm}</Text>
       <Text style={[styles.label, isDark && styles.textDark]}>{t("notesLanguage")}: {selectedLanguage}</Text>
-      {visibleChapters.map((chapter) => {
+      {visibleChapters.map((chapter, index) => {
         const chapterAttempts = attempts.filter((attempt) => attempt.chapterId === chapter.id);
+        const previousChapter = visibleChapters[index - 1];
+        const locked = index > 0 && !attempts.some((attempt) => attempt.chapterId === previousChapter?.id);
         const best = chapterAttempts.length
           ? Math.max(...chapterAttempts.map((attempt) => percent(attempt.score, attempt.total)))
           : 0;
         const progress = (completedNotes[chapter.id] ? 50 : 0) + (chapterAttempts.length ? 50 : 0);
         return (
-          <TouchableOpacity key={chapter.id} style={[styles.chapterCard, isDark && styles.panelDark]} onPress={() => setScreen({ name: "chapter", chapterId: chapter.id })}>
+          <TouchableOpacity
+            key={chapter.id}
+            disabled={locked}
+            activeOpacity={locked ? 1 : 0.82}
+            style={[styles.chapterCard, isDark && styles.panelDark, locked && styles.chapterCardLocked]}
+            onPress={() => setScreen({ name: "chapter", chapterId: chapter.id })}
+          >
             <Text style={styles.eyebrow}>{chapter.form} | Chapter {chapter.chapterNumber}</Text>
             <Text style={[styles.cardTitle, isDark && styles.textDark]}>{chapter.title}</Text>
             <Text style={[styles.bodyText, isDark && styles.mutedDark]}>{chapter.description}</Text>
             <ProgressBar value={progress} />
-            <Text style={[styles.muted, isDark && styles.mutedDark]}>{t("progressLabel")} {progress}% {best ? `| ${t("bestQuiz")} ${best}%` : ""}</Text>
+            <Text style={[styles.muted, isDark && styles.mutedDark]}>
+              {locked ? t("lessonLocked") : `${t("progressLabel")} ${progress}% ${best ? `| ${t("bestQuiz")} ${best}%` : ""}`}
+            </Text>
           </TouchableOpacity>
         );
       })}
@@ -2086,6 +2424,8 @@ function NotesScreen({
   completed,
   selectedLanguage,
   chatMessages,
+  hasAiConsent,
+  onAcceptAiConsent,
   t,
   onBack,
   onSaveChatMessages,
@@ -2095,6 +2435,8 @@ function NotesScreen({
   completed: boolean;
   selectedLanguage: NoteLanguage;
   chatMessages: AiChatMessage[];
+  hasAiConsent: boolean;
+  onAcceptAiConsent: () => void;
   t: (key: keyof typeof translations.English) => string;
   onBack: () => void;
   onSaveChatMessages: (messages: AiChatMessage[]) => void;
@@ -2107,7 +2449,22 @@ function NotesScreen({
   const [question, setQuestion] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
 
+  const requestAiConsent = (next: () => void) => {
+    if (hasAiConsent) {
+      next();
+      return;
+    }
+    Alert.alert(t("aiConsentTitle"), t("aiConsentBody"), [
+      { text: "Cancel", style: "cancel" },
+      { text: t("aiConsentAgree"), onPress: () => { onAcceptAiConsent(); next(); } }
+    ]);
+  };
+
   const handleGenerateAiSummary = async () => {
+    if (!hasAiConsent) {
+      requestAiConsent(handleGenerateAiSummary);
+      return;
+    }
     setIsLoadingAi(true);
     setAiSummary("");
 
@@ -2125,6 +2482,10 @@ function NotesScreen({
   const handleAskGemini = async () => {
     const trimmedQuestion = question.trim();
     if (!trimmedQuestion || isChatLoading) {
+      return;
+    }
+    if (!hasAiConsent) {
+      requestAiConsent(handleAskGemini);
       return;
     }
 
@@ -2264,6 +2625,8 @@ function AiTutorScreen({
   selectedLanguage,
   chatMessagesByChapter,
   isDark,
+  hasAiConsent,
+  onAcceptAiConsent,
   t,
   onSaveChatMessages
 }: {
@@ -2271,6 +2634,8 @@ function AiTutorScreen({
   selectedLanguage: NoteLanguage;
   chatMessagesByChapter: Record<string, AiChatMessage[]>;
   isDark: boolean;
+  hasAiConsent: boolean;
+  onAcceptAiConsent: () => void;
   t: (key: keyof typeof translations.English) => string;
   onSaveChatMessages: (chapterId: string, messages: AiChatMessage[]) => void;
 }) {
@@ -2282,6 +2647,17 @@ function AiTutorScreen({
   const [question, setQuestion] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
 
+  const requestAiConsent = (next: () => void) => {
+    if (hasAiConsent) {
+      next();
+      return;
+    }
+    Alert.alert(t("aiConsentTitle"), t("aiConsentBody"), [
+      { text: "Cancel", style: "cancel" },
+      { text: t("aiConsentAgree"), onPress: () => { onAcceptAiConsent(); next(); } }
+    ]);
+  };
+
   useEffect(() => {
     if (!visibleChapters.some((chapter) => chapter.id === selectedChapterId)) {
       setSelectedChapterId(visibleChapters[0]?.id ?? chapters[0]?.id ?? "");
@@ -2291,6 +2667,10 @@ function AiTutorScreen({
   const handleAskGemini = async () => {
     const trimmedQuestion = question.trim();
     if (!selectedChapter || !trimmedQuestion || isChatLoading) {
+      return;
+    }
+    if (!hasAiConsent) {
+      requestAiConsent(handleAskGemini);
       return;
     }
 
@@ -2613,16 +2993,17 @@ function ProfileScreen({
   attempts,
   isDark,
   onUpdateProfile,
-  onLogout
+  onLogout,
+  onDeleteAccount
 }: CommonScreenProps & {
-  onUpdateProfile: (displayName: string, form: string, notificationsEnabled: boolean, appLanguage: AppLanguage, themeMode: ThemeMode) => void;
+  onUpdateProfile: (displayName: string, form: string, appLanguage: AppLanguage, themeMode: ThemeMode) => void;
   onLogout: () => void;
+  onDeleteAccount: () => Promise<void> | void;
 }) {
   const [displayName, setDisplayName] = useState(user.displayName);
   const [form, setForm] = useState<SchoolForm>(schoolForms.includes(user.form as SchoolForm) ? (user.form as SchoolForm) : "Form 1");
   const [appLanguage, setAppLanguage] = useState<AppLanguage>(user.appLanguage ?? "English");
   const [themeMode, setThemeMode] = useState<ThemeMode>(user.themeMode ?? "Light");
-  const [notificationsEnabled, setNotificationsEnabled] = useState(user.notificationsEnabled);
   const [showSettings, setShowSettings] = useState(false);
   const completedTasks = tasks.filter((task) => task.status === "Completed").length;
   const achievements = [
@@ -2657,13 +3038,6 @@ function ProfileScreen({
                 <Chip key={item} label={item} selected={form === item} onPress={() => setForm(item)} />
               ))}
             </View>
-            <TouchableOpacity style={[styles.toggleRow, isDark && styles.toggleRowDark]} onPress={() => setNotificationsEnabled(!notificationsEnabled)}>
-              <View style={styles.flex}>
-                <Text style={[styles.listTitle, isDark && styles.textDark]}>{getText(appLanguage, "studyReminders")}</Text>
-                <Text style={[styles.muted, isDark && styles.mutedDark]}>{getText(appLanguage, "reminderHelp")}</Text>
-              </View>
-              <Text style={styles.toggle}>{notificationsEnabled ? getText(appLanguage, "on") : getText(appLanguage, "off")}</Text>
-            </TouchableOpacity>
             <Text style={[styles.label, isDark && styles.textDark]}>{getText(appLanguage, "appLanguage")}</Text>
             <View style={styles.wrapRow}>
               {appLanguages.map((item) => (
@@ -2676,7 +3050,17 @@ function ProfileScreen({
                 <Segment key={item} label={item === "Light" ? getText(appLanguage, "light") : getText(appLanguage, "dark")} selected={themeMode === item} onPress={() => setThemeMode(item)} />
               ))}
             </View>
-            <Button label={getText(appLanguage, "saveProfile")} onPress={() => onUpdateProfile(displayName.trim() || user.displayName, form, notificationsEnabled, appLanguage, themeMode)} />
+            <Button label={getText(appLanguage, "saveProfile")} onPress={() => onUpdateProfile(displayName.trim() || user.displayName, form, appLanguage, themeMode)} />
+            <Button
+              label={getText(appLanguage, "deleteAccount")}
+              variant="danger"
+              onPress={() => {
+                Alert.alert(getText(appLanguage, "deleteAccount"), getText(appLanguage, "deleteAccountWarning"), [
+                  { text: "Cancel", style: "cancel" },
+                  { text: getText(appLanguage, "deleteAccountConfirm"), style: "destructive", onPress: () => void onDeleteAccount() }
+                ]);
+              }}
+            />
           </View>
         )}
         <Text style={[styles.sectionTitle, isDark && styles.textDark]}>{getText(appLanguage, "achievements")}</Text>
@@ -2719,6 +3103,14 @@ function ProfileScreen({
           <Text style={[styles.bodyText, isDark && styles.mutedDark]}>
             {getText(appLanguage, "privacyBody")}
           </Text>
+          <View style={styles.policyLinkRow}>
+            <TouchableOpacity activeOpacity={0.82} onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}>
+              <Text style={styles.linkText}>{getText(appLanguage, "privacyPolicy")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.82} onPress={() => void Linking.openURL(TERMS_URL)}>
+              <Text style={styles.linkText}>{getText(appLanguage, "termsOfUse")}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <Button label={getText(appLanguage, "logout")} variant="danger" onPress={onLogout} />
       </ScreenScroll>
@@ -4059,6 +4451,47 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "800"
   },
+  consentRow: {
+    borderColor: "#dbe5ef",
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10
+  },
+  consentText: {
+    flex: 1,
+    color: "#334155",
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: "700"
+  },
+  checkbox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#0f766e",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff"
+  },
+  checkboxChecked: {
+    backgroundColor: "#0f766e"
+  },
+  checkboxMark: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "900"
+  },
+  policyLinkRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 18,
+    marginTop: 12
+  },
   messageBox: {
     backgroundColor: "#fef2f2",
     borderColor: "#fecaca",
@@ -4267,6 +4700,9 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 2
+  },
+  chapterCardLocked: {
+    opacity: 0.58
   },
   achievementCard: {
     backgroundColor: "#ffffff",
